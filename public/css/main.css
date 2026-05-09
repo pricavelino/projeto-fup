@@ -421,3 +421,42 @@ tr.total-row:hover td { background: var(--bg-card) }
   text-shadow: 0 0 4px rgba(0,0,0,.4);
   z-index: 1;
 }
+
+/* ── Header enriquecido ── */
+.fup-pretitulo {
+  font-size: 10px; font-weight: 700;
+  color: var(--azul-celeste);
+  text-transform: uppercase; letter-spacing: .12em;
+  background: var(--azul-escuro);
+  padding: 3px 10px; border-radius: 4px;
+  flex-shrink: 0;
+}
+.fup-separador {
+  color: var(--border); font-size: 14px; flex-shrink: 0;
+}
+.fup-entrega {
+  font-size: 11px;
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px;
+  flex-shrink: 0;
+}
+.fup-entrega-label {
+  font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  opacity: .75;
+}
+.fup-entrega-data {
+  font-size: 11px; font-weight: 700;
+}
+/* Entrega interna — azul claro */
+.fup-entrega.interna {
+  background: #E6F4FB;
+  border: 0.5px solid #008BC9;
+  color: #00567A;
+}
+/* Entrega cliente — roxo */
+.fup-entrega.cliente {
+  background: #F0EBF8;
+  border: 0.5px solid #78487F;
+  color: #4B1528;
+}

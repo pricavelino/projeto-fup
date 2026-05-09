@@ -36,7 +36,7 @@ router.get('/:id', (req, res) => {
 // POST /api/projetos
 // Cria um novo projeto com grupos, marcos e limiares
 router.post('/', (req, res) => {
-  const { nome, referencia, periodicidade, observacoes, grupos, marcos, limiares } = req.body
+  const { nome, referencia, periodicidade, observacoes, entrega_interna, entrega_cliente, grupos, marcos, limiares } = req.body
 
   if (!nome || !referencia) {
     return res.status(400).json({ erro: 'Nome e referência são obrigatórios' })
@@ -45,9 +45,9 @@ router.post('/', (req, res) => {
   // Usa transacao para garantir que tudo é criado junto ou nada
   const criar = db.transaction(() => {
     const { lastInsertRowid: projetoId } = db.prepare(`
-      INSERT INTO projeto (nome, referencia, periodicidade, observacoes)
-      VALUES (?, ?, ?, ?)
-    `).run(nome, referencia, periodicidade || null, observacoes || null)
+      INSERT INTO projeto (nome, referencia, periodicidade, observacoes, entrega_interna, entrega_cliente)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(nome, referencia, periodicidade || null, observacoes || null, entrega_interna || null, entrega_cliente || null)
 
     // Limiares padrão se não forem enviados
     const limiaresFinal = limiares || [
@@ -113,16 +113,18 @@ router.post('/', (req, res) => {
 // PUT /api/projetos/:id
 // Atualiza dados do projeto
 router.put('/:id', (req, res) => {
-  const { nome, referencia, periodicidade, observacoes, ativo } = req.body
+  const { nome, referencia, periodicidade, observacoes, entrega_interna, entrega_cliente, ativo } = req.body
   db.prepare(`
     UPDATE projeto SET
-      nome          = COALESCE(?, nome),
-      referencia    = COALESCE(?, referencia),
-      periodicidade = COALESCE(?, periodicidade),
-      observacoes   = COALESCE(?, observacoes),
-      ativo         = COALESCE(?, ativo)
+      nome             = COALESCE(?, nome),
+      referencia       = COALESCE(?, referencia),
+      periodicidade    = COALESCE(?, periodicidade),
+      observacoes      = COALESCE(?, observacoes),
+      entrega_interna  = COALESCE(?, entrega_interna),
+      entrega_cliente  = COALESCE(?, entrega_cliente),
+      ativo            = COALESCE(?, ativo)
     WHERE id = ?
-  `).run(nome, referencia, periodicidade, observacoes, ativo, req.params.id)
+  `).run(nome, referencia, periodicidade, observacoes, entrega_interna, entrega_cliente, ativo, req.params.id)
   res.json({ ok: true })
 })
 

@@ -10,6 +10,8 @@ db.exec(`
     periodicidade TEXT,
     observacoes   TEXT,
     criado_em     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    entrega_interna DATE,
+    entrega_cliente DATE,
     ativo         INTEGER  DEFAULT 1
   );
 
@@ -101,6 +103,10 @@ db.exec(`
   );
 
 `)
+
+// Adiciona colunas de entrega se ainda nao existem (banco ja criado)
+try { db.exec('ALTER TABLE projeto ADD COLUMN entrega_interna DATE') } catch(e) {}
+try { db.exec('ALTER TABLE projeto ADD COLUMN entrega_cliente DATE') } catch(e) {}
 
 console.log('Banco de dados inicializado com sucesso.')
 console.log('Tabelas criadas: projeto, grupo_tratamento, analista,')

@@ -109,6 +109,31 @@ function renderHeader(p) {
   document.getElementById('proj-ref').textContent    = p.referencia || ''
   document.getElementById('proj-fase').textContent   = p.periodicidade || ''
 
+  const fmtData = d => {
+    if (!d) return null
+    const dt = new Date(d + 'T12:00:00')
+    return dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  }
+
+  const elInt = document.getElementById('proj-entrega-interna')
+  const elCli = document.getElementById('proj-entrega-cliente')
+
+  if (p.entrega_interna) {
+    elInt.style.display = 'flex'
+    elInt.className = 'fup-entrega interna'
+    elInt.innerHTML = '<span class="fup-entrega-label">Entrega interna</span><span class="fup-entrega-data">' + fmtData(p.entrega_interna) + '</span>'
+  } else {
+    elInt.style.display = 'none'
+  }
+
+  if (p.entrega_cliente) {
+    elCli.style.display = 'flex'
+    elCli.className = 'fup-entrega cliente'
+    elCli.innerHTML = '<span class="fup-entrega-label">Entrega cliente</span><span class="fup-entrega-data">' + fmtData(p.entrega_cliente) + '</span>'
+  } else {
+    elCli.style.display = 'none'
+  }
+
   const inpDia = document.getElementById('inp-dia')
   inpDia.max   = p._duMax || 30
   inpDia.value = p._dayAtual || 1
@@ -165,6 +190,11 @@ function renderTabelas(dia) {
     const isMat    = g.sigla === 'MAT'
     const clsSec   = isMat ? 'sec-mat' : 'sec-eqp'
     const clsCard  = isMat ? 'card-mat' : 'card-eqp'
+    // Cor harmonica da barra por equipe
+    const corBarra = isMat
+      ? { ok: '#668040', warn: '#A89050', bad: '#C47840' }  // tons oliva
+      : { ok: '#2B8671', warn: '#4A9B88', bad: '#7ABFB4' }  // tons turquesa
+    g._corBarra = corBarra
     const statsGrupo = calcStatsGrupo(g, dia)
 
     // Secao com cards internos
@@ -280,6 +310,10 @@ function renderLinhasGrupo(g, dia) {
     const pctReal100 = Math.min(100, Math.round(s.pctReal * 100))
     const pctDiasA   = s.disponiveis > 0 ? Math.round(s.diasTrab / s.disponiveis * 100) : 0
     const diasLabel  = s.diasTrab + '/' + s.disponiveis + ' (' + pctDiasA + '%)'
+    // Cor da barra segue a equipe, com variacao por desempenho
+    const corBarra = g._corBarra
+      ? (s.pctAlc >= 0.8 ? g._corBarra.ok : s.pctAlc >= 0.5 ? g._corBarra.warn : g._corBarra.bad)
+      : cor
 
     const tr = document.createElement('tr')
     tr.innerHTML = `
@@ -292,7 +326,7 @@ function renderLinhasGrupo(g, dia) {
       <td>${a.quantidade.toLocaleString('pt-BR')}</td>
       <td style="padding:4px 5px">
         <div class="barra-real">
-          <div class="barra-real-fill" style="width:${pctReal100}%;background:${cor}"></div>
+          <div class="barra-real-fill" style="width:${pctReal100}%;background:${corBarra}"></div>
           <div class="barra-real-txt">${pctReal100}% &middot; ${s.real.toLocaleString('pt-BR')}</div>
         </div>
       </td>
