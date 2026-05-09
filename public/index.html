@@ -2,10 +2,133 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>FUP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FUP — Follow Up de Producao</title>
+  <link rel="stylesheet" href="/css/main.css">
+  <style>
+    /* ── Timeline banner ── */
+    .timeline{background:#002D4D;padding:10px 18px;flex-shrink:0;display:none}
+    .timeline.visivel{display:block}
+    .tl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .tl-titulo{font-size:10px;font-weight:700;color:#73BFE8;text-transform:uppercase;letter-spacing:.06em}
+    .tl-periodo{font-size:10px;color:rgba(255,255,255,.4)}
+    .tl-grid{position:relative}
+    .tl-eixo{display:flex;padding-left:96px;margin-bottom:4px;border-bottom:0.5px solid rgba(255,255,255,.1);padding-bottom:3px}
+    .tl-mes{flex:1;font-size:8px;color:rgba(255,255,255,.35);text-align:center;text-transform:uppercase;letter-spacing:.04em}
+    .tl-linhas{position:relative}
+    .tl-hoje-line{position:absolute;top:0;bottom:0;width:1.5px;background:#73BFE8;z-index:4;pointer-events:none}
+    .tl-hoje-label{position:absolute;top:-3px;font-size:8px;color:#73BFE8;white-space:nowrap;transform:translateX(-50%)}
+    .tl-fase-row{display:flex;align-items:center;margin-bottom:3px;position:relative}
+    .tl-fase-row:last-child{margin-bottom:0}
+    .tl-fase-nome{width:88px;flex-shrink:0;font-size:9px;color:rgba(255,255,255,.5);text-align:right;padding-right:8px}
+    .tl-barra-area{flex:1;position:relative;height:18px}
+    .tl-barra{position:absolute;height:100%;border-radius:3px;display:flex;align-items:center;padding:0 5px;overflow:hidden}
+    .tl-barra-txt{font-size:8px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tl-marco-wrap{position:absolute;top:0;bottom:0;display:flex;align-items:center;z-index:3}
+    .tl-marco-dot{width:8px;height:8px;border-radius:50%;border:1.5px solid #fff;transform:translateX(-50%)}
+    .tl-marco-label{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-size:7px;white-space:nowrap;padding-bottom:2px;color:rgba(255,255,255,.7)}
+  </style>
 </head>
 <body>
-  <h1>FUP — em construcao</h1>
-  <p>Backend funcionando.</p>
+
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Projetos</div>
+    <div class="proj-list" id="proj-list"></div>
+    <div class="sidebar-footer">
+      <button class="btn-novo" onclick="window.location.href='/setup.html'">
+        + Nova referencia
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Header -->
+    <div class="fup-header">
+      <div class="fup-header-left">
+        <span class="fup-titulo" id="proj-titulo">Selecione um projeto</span>
+        <span class="badge-ref"  id="proj-ref"></span>
+        <span class="badge-fase" id="proj-fase"></span>
+      </div>
+      <div class="fup-header-right">
+        <span class="label-du">Dia de tratamento:</span>
+        <input type="number" id="inp-dia" class="inp-du" min="1" max="30" value="1" oninput="recalcular()">
+        <span class="label-du" id="total-du"></span>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards">
+      <div class="card"><div class="card-label">Total de itens</div><div class="card-val" id="c-total">—</div><div class="card-sub">MAT + EQP</div></div>
+      <div class="card"><div class="card-label">Realizado</div><div class="card-val" id="c-real">—</div><div class="card-sub" id="c-pct-real">—</div></div>
+      <div class="card"><div class="card-label">Acum. esperado hoje</div><div class="card-val" id="c-esp">—</div><div class="card-sub" id="c-pct-alc">—</div></div>
+      <div class="card"><div class="card-label">DU restantes</div><div class="card-val" id="c-du-rest">—</div><div class="card-sub" id="c-saldo">—</div></div>
+    </div>
+
+    <!-- Timeline banner -->
+    <div class="timeline" id="timeline">
+      <div class="tl-header">
+        <span class="tl-titulo" id="tl-titulo">Cronograma</span>
+        <span class="tl-periodo" id="tl-periodo"></span>
+      </div>
+      <div class="tl-grid">
+        <div class="tl-eixo" id="tl-eixo"></div>
+        <div class="tl-linhas" id="tl-linhas"></div>
+      </div>
+    </div>
+
+    <!-- Tabelas -->
+    <div class="tbl-container" id="tbl-container">
+      <div class="estado-vazio" id="estado-vazio">
+        <span style="font-size:32px">📋</span>
+        <span>Selecione um projeto na sidebar</span>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="fup-footer">
+      <div class="leg"><div class="leg-dot" style="background:#378ADD"></div>Concluido</div>
+      <div class="leg"><div class="leg-dot" style="background:#639922"></div>No prazo (>=80%)</div>
+      <div class="leg"><div class="leg-dot" style="background:#EF9F27"></div>Atencao (50-80%)</div>
+      <div class="leg"><div class="leg-dot" style="background:#E24B4A"></div>Atrasado (<50%)</div>
+      <div class="leg" style="margin-left:auto;font-style:italic">Clique no analista para lancar dias</div>
+    </div>
+
+    <!-- Overlay e Drawer -->
+    <div class="overlay" id="overlay" onclick="fecharDrawer()"></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div>
+          <div class="drawer-titulo" id="drawer-titulo">—</div>
+          <div class="drawer-sub"   id="drawer-sub">—</div>
+        </div>
+        <button class="btn-fechar" onclick="fecharDrawer()">&#x2715;</button>
+      </div>
+      <div class="drawer-stats" id="drawer-stats"></div>
+      <div class="drawer-legenda">
+        <div class="leg"><div class="leg-dot" style="background:#E1F5EE;border:0.5px solid #1D9E75"></div>Com producao</div>
+        <div class="leg"><div class="leg-dot" style="background:#FAEEDA;border:0.5px solid #EF9F27"></div>Zero real</div>
+        <div class="leg"><div class="leg-dot" style="background:#fff;border:0.5px solid #ccc"></div>Vazio</div>
+        <div class="leg"><div class="leg-dot" style="background:#f5f4f0;border:0.5px solid #ccc"></div>Feriado/Ferias/Falta</div>
+      </div>
+      <div class="drawer-col-header">
+        <span>Dia</span><span>Data</span><span style="text-align:right">Acum.</span><span></span><span>Qtd. / Tipo</span>
+      </div>
+      <div class="drawer-body" id="drawer-body"></div>
+      <div class="drawer-footer">
+        <button class="btn-cancelar" onclick="fecharDrawer()">Cancelar</button>
+        <button class="btn-salvar"   onclick="salvarDrawer()">&#10003; Salvar lancamentos</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="/js/api.js" defer></script>
+<script src="/js/fup.js" defer></script>
 </body>
 </html>
